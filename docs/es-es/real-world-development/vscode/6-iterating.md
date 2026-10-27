@@ -31,7 +31,7 @@ Los controles de alto contraste y modo claro que has implementado con el agente 
    - Los componentes de la interfaz que permiten alternar entre modos.
    - El uso del almacenamiento local para conservar las preferencias del usuario.
    - Los cambios de CSS o de estilos para los modos de alto contraste y claro.
-   - Los atributos de accesibilidad (etiquetas ARIA, navegación por teclado, etc.).
+   - Los atributos de accesibilidad (como las etiquetas de la especificación Accessible Rich Internet Applications (ARIA) y la navegación por teclado, entre otros).
    - Cualquier código JavaScript/TypeScript que gestione el cambio de modo.
 
 9. Vuelve a la pestaña **Conversation**.

@@ -6,31 +6,31 @@ authors:
 lastUpdated: 2026-09-16
 ---
 
-[モジュール 1][previous-lesson]では、カタログを準備し、デプロイ済みのモデルをテストしました。[コンシェルジュを作るオプション シリーズ][overview]の 2 番目のモジュールでは、その土台をホスト型エージェントに発展させます。
+[モジュール 1][previous-lesson]では、カタログを準備し、デプロイ済みのモデルをテストしました。[コンシェルジュを作るオプションシリーズ][overview]の2番目のモジュールでは、その基盤をホスト型エージェントに発展させます。
 
-このモジュールでは、次の内容に取り組みます。
+このモジュールでは、次のことを行います。
 
-- デプロイ可能な専用のカタログ コピーを含むエージェントのひな形を作成する。
-- グラウンディングと会話の継続性をローカルでテストする。
-- エージェントをデプロイし、リモートで呼び出す。
+- デプロイ可能な専用カタログコピーを含むエージェントのひな形を作成します。
+- グラウンディングと会話の継続性をローカルでテストします。
+- エージェントをデプロイし、リモートで呼び出します。
 
 ## シナリオ
 
-Tailspin Toys が必要としているのは、モデルからの 1 回限りの回答だけではありません。支援者は、コンシェルジュが直前に勧めたゲームを覚えていて、それらに関する追加の質問に答えることを期待しています。また、コンシェルジュを開発者のマシンからホスト型サービスに移しても、回答の信頼性を維持する必要があります。
+Tailspin Toys が必要としているのは、モデルからの1回限りの回答だけではありません。支援者は、コンシェルジュが直前に勧めたゲームを覚えていて、それらについて追加の質問に答えることを期待しています。また、コンシェルジュを開発者のマシンからホスト型サービスに移しても、回答の信頼性を維持する必要があります。
 
-## 既存のプロジェクトで続ける
+## プロジェクトを続ける
 
-このモジュールは、モジュール 1 で動作を確認したモデルを引き継ぎます。別の Azure リソース一式を作成するのではなく、同じプロジェクトとデプロイを使い続けます。
+このモジュールは、モジュール 1 で動作を確認したモデルを引き継ぎます。別の Azure リソース一式を作成せず、同じプロジェクトとデプロイを使います。
 
-1. `foundry-agent-cli` ブランチの Tailspin Toys リポジトリと、モジュール 1 の Copilot CLI セッションに戻ります。
-2. `db/catalog.json` が利用でき、モデルのテストで使った Foundry プロジェクト、選択したモデルのデプロイ、Azure のサインインが引き続き利用できることを確認します。セットアップが未完了の場合は、先に[プロジェクトとモデルを準備する][previous-lesson]を完了してください。
+1. Codespace に戻り、`foundry-agent-cli` ブランチの Tailspin Toys リポジトリと、モジュール 1 の GitHub Copilot CLI（コマンドライン インターフェイス）セッションを開きます。
+2. `db/catalog.json` が使えること、モデルテストで使った Foundry プロジェクト、選択したモデルデプロイ、Azure サインインが引き続き利用できることを確認します。セットアップが未完了の場合は、先に[プロジェクトとモデルを準備する][previous-lesson]を完了します。
 
 > [!IMPORTANT]
-> ホスト型エージェントはパブリック プレビューであり、課金対象の Azure リソースを作成します。このモジュールで終了する場合も、[クリーンアップの手順][cleanup]に従ってください。
+> ホスト型エージェントはパブリックプレビューであり、課金対象の Azure リソースを作成します。このモジュールで終了する場合も、[クリーンアップの手順][cleanup]に従ってください。
 
 ## Backer Concierge エージェントのひな形を作成する
 
-Microsoft Foundry Skill に、既存の Tailspin Toys リポジトリ内でホスト型エージェントのひな形を作成するよう依頼し、実行する前にパッケージ化と構成を確認します。
+Microsoft Foundry Skill に、既存の Tailspin Toys リポジトリ内でホスト型エージェントのひな形を作成するよう依頼します。実行前にパッケージと構成を確認します。
 
 1. Copilot CLI に次のプロンプトを入力します。
 
@@ -42,7 +42,7 @@ Microsoft Foundry Skill に、既存の Tailspin Toys リポジトリ内でホ�
     Scaffold and test locally, but do not deploy the hosted agent yet. Stop and ask me to authenticate if needed.
     ```
 
-2. セッションを確認し、Foundry プロジェクト、モデルのデプロイ、エージェント名、環境に関する質問に答えます。
+2. セッションを確認し、Foundry プロジェクト、モデルデプロイ、エージェント名、環境について質問されたら回答します。
 3. Copilot の作業が終わったら、変更を確認します。
 
     ```text
@@ -53,13 +53,13 @@ Microsoft Foundry Skill に、既存の Tailspin Toys リポジトリ内でホ�
 
     - `azure.yaml` に `host: azure.ai.agent` のサービスが含まれている。
     - サービスが `agent/backer-concierge` を参照している。
-    - デプロイするサービス パッケージに、自動生成された専用のカタログ コピーが含まれている。
-    - 手作業で編集する 2 つのカタログを管理するのではなく、1 つのスクリプトまたはビルド手順で `db/catalog.json` からコピーを更新している。
-    - エージェントが、選択したモデルのデプロイと Responses API を使っている。
-    - 指示の中で、カタログに存在しない事実を明示的に拒否している。
-    - 資格情報、アクセス トークン、`.env` ファイル、`.azure` 環境ファイルがコミット対象としてステージングされていない。
+    - デプロイするサービスパッケージに、自動生成されたカタログコピーが含まれている。
+    - 手作業で編集するカタログを2つ維持するのではなく、1つのスクリプトまたはビルド手順で `db/catalog.json` からコピーを更新している。
+    - エージェントが選択したモデルデプロイと Responses API を使っている。
+    - カタログにない事実を明示的に使わないよう指示している。
+    - 資格情報、アクセストークン、`.env` ファイル、`.azure` 環境ファイルがコミット用にステージされていない。
 
-    ひな形作成後のチェックポイントとして、次の構成を確認します。
+    ひな形を作成した後のチェックポイントとして、次の構成を確認します。
 
     ```text
     tailspin-toys/
@@ -74,32 +74,32 @@ Microsoft Foundry Skill に、既存の Tailspin Toys リポジトリ内でホ�
     ```
 
 > [!IMPORTANT]
-> `azd deploy` は、ホスト型エージェントのサービス ディレクトリをパッケージ化します。実行時に `agent/backer-concierge` からリポジトリ レベルの `db/catalog.json` を参照すると、ローカルでは動いてもデプロイ後に失敗する可能性があります。生成されたコピーは、デプロイ前に `agent/backer-concierge/` ディレクトリ内で利用できる必要があります。
+> `azd deploy` はホスト型エージェントのサービスディレクトリをパッケージ化します。`agent/backer-concierge` からリポジトリルートの `db/catalog.json` を実行時に参照すると、ローカルでは動作してもデプロイ後に失敗する可能性があります。デプロイ前に `agent/backer-concierge/` 内で生成済みコピーを利用できるようにします。
 
-4. サービスを起動する前に、対象を絞ったテストを実行し、生成された構成を確認するよう Copilot に依頼します。
+4. サービスを起動する前に、対象を絞ったテストを実行し、生成された構成を検査するよう Copilot に依頼します。
 
     ```text
     Run the focused Backer Concierge tests. Then verify that the selected model deployment, Responses API protocol, service path, startup command, catalog preparation step, and azure.ai.agent host configuration are consistent. Fix only problems in this hosted-agent project and rerun the failed checks.
     ```
 
-    対象を絞ったテストがすべて成功するまでは、先に進まないでください。
+    対象を絞ったテストが成功するまでは続行しないでください。
 
     ![生成されたエージェントのひな形を検証する](../../../../_images/cli-8-verify-generated-agent.png)
 
 ## エージェントをローカルでテストする
 
-ローカルの Responses API を通じて、エージェントのグラウンディングと会話の動作を確認します。ローカルのエージェント サービスは実行中にターミナルを占有するため、現在のターミナルでは Copilot CLI を開いたままにし、2 つ目のターミナルからエージェントを起動します。
+ローカルの Responses API（アプリケーション プログラミング インターフェイス）を通じて、エージェントのグラウンディングと会話の動作を確認します。ローカルエージェントは実行中にターミナルを占有するため、Copilot CLI は現在のターミナルで開いたままにし、2つ目のターミナルからエージェントを起動します。
 
-1. <kbd>Ctrl</kbd>+<kbd>\`</kbd> を使って、別のターミナルを開きます。
-2. Tailspin Toys リポジトリのルートから、次を実行します。
+1. <kbd>Ctrl</kbd>+<kbd>\`</kbd> を押して、別のターミナルを開きます。
+2. Tailspin Toys リポジトリのルートから次を実行します。
 
     ```bash
     azd ai agent run
     ```
 
-    ローカルでの初回実行では、Python 環境を作成し、依存関係をインストールして、ホスト型エージェントを起動します。このターミナルは実行したままにします。
+    初回実行では Python 環境を作成し、依存関係をインストールして、ホスト型エージェントを起動します。このターミナルは開いたままにします。
 
-3. 最初のターミナルの Copilot CLI に戻り、次を入力します。
+3. 最初のターミナルで Copilot CLI に戻り、次を入力します。
 
     ```text
     Test the running Backer Concierge through its Responses API. Run each acceptance prompt below, preserve the response ID for the two-turn conversation test, and compare every response with the expected behavior. Show a concise pass or fail table and the evidence for any failure. Do not change code yet.
@@ -113,16 +113,16 @@ Microsoft Foundry Skill に、既存の Tailspin Toys リポジトリ内でホ�
     7. In one conversation, send "Show me two highly rated strategy games." followed by "Which of those has the higher rating?" Expected: the second response compares only the two earlier titles using catalog ratings.
     ```
 
-    ![ホスト型エージェントのデプロイに向けたテストの成功結果](../../../../_images/cli-8-passing-acceptance-scenarios.png)
+    ![ホスト型エージェントの受け入れシナリオが成功した画面](../../../../_images/cli-8-passing-acceptance-scenarios.png)
 
-4. 結果を確認します。エージェントに接続できない場合は、2 つ目のターミナルでサービスがまだ実行中であることを確認します。テストが失敗した場合は、ローカルの不具合だけを修正し、対象を絞ったテストを実行して、`azd ai agent run` の再起動が必要なタイミングを知らせるよう Copilot に依頼します。変更するたびにサービスを再起動し、失敗した受け入れテストを再実行します。
+4. 結果を確認します。接続できない場合は、2つ目のターミナルでサービスが実行中か確認します。テストが失敗した場合は、ローカルの不具合だけを修正し、対象を絞ったテストを実行して、`azd ai agent run` を再起動するタイミングを知らせるよう Copilot に依頼します。変更のたびにサービスを再起動し、失敗した受け入れテストを再実行します。
 
 ## ホスト型エージェントをデプロイする
 
-ローカルの受け入れテストが成功したら、エージェントを Microsoft Foundry にデプロイする準備が整います。同じスキル主導のワークフローで、デプロイの準備状況を確認し、リモート エンドポイントをテストします。
+ローカルの受け入れテストが成功したら、エージェントを Microsoft Foundry にデプロイします。同じスキル主導のワークフローでデプロイ準備を確認し、リモートエンドポイントをテストします。
 
-1. すべての受け入れテストが成功したら、<kbd>Ctrl</kbd>+<kbd>C</kbd> でローカル サービスを停止します。
-2. Copilot CLI に戻り、次のプロンプトを入力します。デプロイを承認する前に、提案されたリソースと推定コストを確認してください。
+1. すべての受け入れテストが成功した後、<kbd>Ctrl</kbd>+<kbd>C</kbd> でローカルサービスを停止します。
+2. Copilot CLI に戻り、次のプロンプトを入力します。デプロイを承認する前に、提案されたリソースと推定コストを確認します。
 
     ```text
     Continue with the Microsoft Foundry Skill workflow. Review the hosted agent for deployment readiness, then deploy it to Microsoft Foundry, show the deployment status and playground link, and invoke it remotely with: "I love puzzle games about tracking down bugs. What should I back?"
@@ -132,17 +132,17 @@ Microsoft Foundry Skill に、既存の Tailspin Toys リポジトリ内でホ�
 
     ![ホスト型エージェントのデプロイ状況とプレイグラウンドへのリンク](../../../../_images/cli-8-hosted-agent-deployment.png)
 
-4. デプロイ状況とリモートからの回答を確認します。エージェントが実行中であり、カタログに実在するゲームだけを勧めていることを確認します。デプロイまたは呼び出しが失敗した場合は、続行する前に、Copilot に原因の診断を依頼してリモート テストを繰り返します。
+4. デプロイ状況とリモートの応答を確認します。エージェントが実行中で、カタログに実在するゲームだけを勧めることを確認します。デプロイや呼び出しが失敗した場合は、原因を診断してリモートテストを繰り返すよう Copilot に依頼します。
 
-表示されたプレイグラウンドのリンクから、Microsoft Foundry ポータルでデプロイ済みのホスト型エージェントと対話できます。
+表示されたプレイグラウンドのリンクから、Microsoft Foundry ポータルでデプロイ済みエージェントを操作できます。
 
-スキル主導のワークフローは、`azd deploy` でサービスのソースをパッケージ化し、依存関係を解決してリモートでビルドし、Microsoft Foundry に公開します。デプロイ済みのエンドポイントのテストには、Foundry の呼び出しワークフローを使います。
+スキル主導のワークフローでは、`azd deploy` を使ってサービスソースをパッケージ化し、依存関係を解決してリモートでビルドし、Microsoft Foundry に公開します。デプロイ済みのエンドポイントは Foundry の呼び出しワークフローでテストします。
 
 ## まとめと次のステップ
 
-デプロイ可能なカタログ コピーを含むエージェントのひな形を作成し、グラウンディングと会話の継続性をテストして、Microsoft Foundry からのリモートの回答を検証しました。これで、正常に動作するホスト型の Backer Concierge が完成しました。
+デプロイ可能なカタログコピーを含むエージェントのひな形を作成し、グラウンディングと会話の継続性をテストして、Microsoft Foundry からのリモート応答を検証しました。正常に動作するホスト型 Backer Concierge が完成しました。
 
-次は、同じリポジトリ、ブランチ、Copilot CLI セッション、デプロイ済みのエージェントを使って、[コンシェルジュを Web サイトに接続します][next-lesson]。ホスト型エージェントを試すだけで十分な場合は、ここで終了して [Azure リソースをクリーンアップできます][cleanup]。
+次は、同じリポジトリ、ブランチ、Copilot CLI セッション、デプロイ済みエージェントを使って、[コンシェルジュを Web サイトに接続します][next-lesson]。ホスト型エージェントの探索だけで十分な場合は、ここで終了して [Azure リソースをクリーンアップしてください][cleanup]。
 
 [overview]: ../
 [previous-lesson]: ../1-project-and-model/
